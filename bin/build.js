@@ -33,7 +33,9 @@ var CRITICAL_CSS_SPRITES_LINES = 8;
 
 module.exports = async function build(debug) {
   async function minifyCss(css) {
-    var processed = await postcss([autoprefixer]).process(css);
+    var processed = await postcss([autoprefixer]).process(css, {
+      from: undefined
+    });
     css = processed.css;
     return cleanCss.minify(css).styles;
   }
@@ -364,8 +366,8 @@ module.exports = async function build(debug) {
   }
 
   console.log('building...');
-  await rimraf('./www');
-  await mkdirp('./www');
+  await rimraf('./www/*');
+  // await mkdirp('./www');
 
   async function buildProd() {
     console.log('buildProd()');

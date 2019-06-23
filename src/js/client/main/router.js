@@ -20,6 +20,12 @@ router
   .on('/', () => {
     landedOnMainView = true;
     if (typeof lastNationalId === 'number') {
+      if (scrollPos) {
+        setTimeout(() => {
+          document.documentElement.scrollTop = scrollPos;
+        }, 300);
+      }
+
       // not initial load
       detailViewOrchestrator.animateOut(lastNationalId);
     }
@@ -28,7 +34,6 @@ router
 
 function toMonsterDetail(nationalId) {
   scrollPos = document.documentElement.scrollTop || document.body.scrollTop;
-  console.log('here 1', scrollPos);
   router.navigate('/pokemon/' + nationalId);
 }
 
@@ -38,13 +43,6 @@ function toMainView() {
   } else {
     // didn't land on main view, don't do a back action
     router.navigate('/');
-  }
-
-  if (scrollPos) {
-    setTimeout(() => {
-      console.log('here 3');
-      document.documentElement.scrollTop = scrollPos;
-    }, 500);
   }
 }
 
