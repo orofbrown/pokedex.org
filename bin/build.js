@@ -13,7 +13,7 @@ var autoprefixer = require('autoprefixer');
 var postcss = require('postcss');
 var execall = require('execall');
 var minifyHtml = require('html-minifier').minify;
-var bundleCollapser = require("bundle-collapser/plugin");
+var bundleCollapser = require('bundle-collapser/plugin');
 var envify = require('envify/custom');
 var vdomify = require('./vdomify');
 var concat = require('concat-stream');
@@ -32,9 +32,8 @@ var splitFile = require('./split-file');
 var CRITICAL_CSS_SPRITES_LINES = 8;
 
 module.exports = async function build(debug) {
-
   async function minifyCss(css) {
-    var processed = await postcss([ autoprefixer ]).process(css);
+    var processed = await postcss([autoprefixer]).process(css);
     css = processed.css;
     return cleanCss.minify(css).styles;
   }
@@ -48,7 +47,8 @@ module.exports = async function build(debug) {
       var svgFilename = __dirname + '/../src/css/' + svg.sub[0];
       var svgBody = await fs.readFileAsync(svgFilename, 'utf-8');
       var svgBase64 = new Buffer(svgBody, 'utf-8').toString('base64');
-      criticalCss = criticalCss.substring(0, svg.index) +
+      criticalCss =
+        criticalCss.substring(0, svg.index) +
         `url("data:image/svg+xml;base64,${svgBase64}")` +
         criticalCss.substring(svg.index + svg.match.length);
     }
@@ -57,16 +57,28 @@ module.exports = async function build(debug) {
 
   async function inlineCriticalJs() {
     console.log('inlineCriticalJs()');
-    var html = await fs.readFileAsync(__dirname + '/../www/index.html', 'utf-8');
-    var common = await fs.readFileAsync(__dirname + '/../www/js/common.js', 'utf-8');
-    var crit = await fs.readFileAsync(__dirname + '/../www/js/critical.js', 'utf-8');
+    var html = await fs.readFileAsync(
+      __dirname + '/../www/index.html',
+      'utf-8'
+    );
+    var common = await fs.readFileAsync(
+      __dirname + '/../www/js/common.js',
+      'utf-8'
+    );
+    var crit = await fs.readFileAsync(
+      __dirname + '/../www/js/critical.js',
+      'utf-8'
+    );
 
-    html = html.replace(
-      '<script src=js/critical.js></script>',
-      `<script>${crit}</script>`)
+    html = html
       .replace(
-      '<script src=js/common.js></script>',
-      `<script>${common}</script>`);
+        '<script src=js/critical.js></script>',
+        `<script>${crit}</script>`
+      )
+      .replace(
+        '<script src=js/common.js></script>',
+        `<script>${common}</script>`
+      );
 
     await fs.writeFileAsync(__dirname + '/../www/index.html', html, 'utf-8');
   }
@@ -75,8 +87,12 @@ module.exports = async function build(debug) {
     var mainCss = await fs.readFileAsync('./src/css/style.css', 'utf-8');
     var spritesCss = await fs.readFileAsync('./src/css/sprites.css', 'utf-8');
 
-    mainCss += '\n' +
-      spritesCss.split('\n').slice(0, CRITICAL_CSS_SPRITES_LINES).join('\n');
+    mainCss +=
+      '\n' +
+      spritesCss
+        .split('\n')
+        .slice(0, CRITICAL_CSS_SPRITES_LINES)
+        .join('\n');
 
     mainCss = await inlineSvgs(mainCss);
     mainCss = await minifyCss(mainCss);
@@ -85,10 +101,12 @@ module.exports = async function build(debug) {
     return html
       .replace(
         '<link href="vendor/mui.css" rel="stylesheet"/>',
-        `<style>${muiCss}</style>`)
+        `<style>${muiCss}</style>`
+      )
       .replace(
         '<link href="css/style.css" rel="stylesheet"/>',
-        `<style>${mainCss}</style>`);
+        `<style>${mainCss}</style>`
+      );
   }
 
   async function inlineVendorJs(html) {
@@ -98,32 +116,37 @@ module.exports = async function build(debug) {
     }).code;
     return html.replace(
       '<script src="vendor/mui.js"></script>',
-      `<script>${muiMin}</script>`);
+      `<script>${muiMin}</script>`
+    );
   }
 
   async function buildHtml() {
     console.log('buildHtml()');
     var html = await fs.readFileAsync('./src/index.html', 'utf-8');
-    var monstersList = renderMonstersList(monsterSummaries,
-      0, initialWindowSize);
-    html = html.replace('<ul id="monsters-list"></ul>',
-      toHtml(monstersList));
+    var monstersList = renderMonstersList(
+      monsterSummaries,
+      0,
+      initialWindowSize
+    );
+    html = html.replace('<ul id="monsters-list"></ul>', toHtml(monstersList));
 
     var monsterDetailHtml = renderMonsterDetailView(bulbasaur);
-    html = html.replace('<div id="detail-view"></div>',
-      toHtml(monsterDetailHtml));
+    html = html.replace(
+      '<div id="detail-view"></div>',
+      toHtml(monsterDetailHtml)
+    );
 
     if (!debug) {
       html = await inlineCriticalCss(html);
       html = await inlineVendorJs(html);
-      html = minifyHtml(html, {removeAttributeQuotes: true});
+      html = minifyHtml(html, { removeAttributeQuotes: true });
     }
     await fs.writeFileAsync('./www/index.html', html, 'utf-8');
   }
 
   async function writeSplitCss(css, filename, numParts) {
     css = css.split('\n');
-    var batchSize = (css.length / numParts);
+    var batchSize = css.length / numParts;
     var counter = 1;
     var promises = [];
     for (var i = 0; i < css.length; i += batchSize) {
@@ -142,18 +165,31 @@ module.exports = async function build(debug) {
   async function buildCss() {
     console.log('buildCss()');
     var spritesCss = await fs.readFileAsync('./src/css/sprites.css', 'utf-8');
-    var spritesWebpCss = await fs.readFileAsync('./src/css/sprites-webp.css', 'utf-8');
+    var spritesWebpCss = await fs.readFileAsync(
+      './src/css/sprites-webp.css',
+      'utf-8'
+    );
 
     if (!debug) {
-      spritesCss = spritesCss.split('\n').slice(CRITICAL_CSS_SPRITES_LINES).join('\n');
-      spritesWebpCss = spritesWebpCss.split('\n').slice(CRITICAL_CSS_SPRITES_LINES).join('\n');
+      spritesCss = spritesCss
+        .split('\n')
+        .slice(CRITICAL_CSS_SPRITES_LINES)
+        .join('\n');
+      spritesWebpCss = spritesWebpCss
+        .split('\n')
+        .slice(CRITICAL_CSS_SPRITES_LINES)
+        .join('\n');
     }
 
     await mkdirp('./www/css');
 
     var promises = [
       writeSplitCss(spritesCss, './www/css/sprites.css', numSpritesCssFiles),
-      writeSplitCss(spritesWebpCss, './www/css/sprites-webp.css', numSpritesCssFiles),
+      writeSplitCss(
+        spritesWebpCss,
+        './www/css/sprites-webp.css',
+        numSpritesCssFiles
+      )
     ];
     if (debug) {
       var mainCss = await fs.readFileAsync('./src/css/style.css', 'utf-8');
@@ -176,13 +212,16 @@ module.exports = async function build(debug) {
     if (debug) {
       b = b.plugin('errorify');
     } else {
-      b = b.transform('package-json-versionify')
-        .transform({global: true}, 'stripify')
-        .transform({global: true}, 'uglifyify');
+      b = b
+        .transform('package-json-versionify')
+        .transform({ global: true }, 'stripify')
+        .transform({ global: true }, 'uglifyify');
     }
-    b = b.transform(vdomify).transform(envify({
-      NODE_ENV: process.env.NODE_ENV || (debug ? 'development' : 'production')
-    }));
+    b = b.transform(vdomify).transform(
+      envify({
+        NODE_ENV: process.env.NODE_ENV || (debug ? 'development' : 'production')
+      })
+    );
     return b;
   }
 
@@ -225,7 +264,7 @@ module.exports = async function build(debug) {
       ]);
     } else {
       // do a factor-bundle to split up the worker and critical stuff
-      factorPromise = new Promise(function (resolve) {
+      factorPromise = new Promise(function(resolve) {
         var numDone = 0;
         var checkDone = () => {
           if (++numDone == 3) {
@@ -239,12 +278,21 @@ module.exports = async function build(debug) {
         ];
         var b = startBrowserify(files);
 
-        b.plugin('factor-bundle', {outputs: [write('main.js'), write('critical.js')]});
-        b.bundle().pipe(write('common.js')).on('end', checkDone);
+        b.plugin('factor-bundle', {
+          outputs: [write('main.js'), write('critical.js')]
+        });
+        b.bundle()
+          .pipe(write('common.js'))
+          .on('end', checkDone);
 
         function write(name) {
-          return concat(function (body) {
-            fs.writeFile(__dirname + '/../www/js/' + name, body, 'utf-8', checkDone);
+          return concat(function(body) {
+            fs.writeFile(
+              __dirname + '/../www/js/' + name,
+              body,
+              'utf-8',
+              checkDone
+            );
           });
         }
       });
@@ -261,14 +309,17 @@ module.exports = async function build(debug) {
     ];
 
     if (!debug) {
-      await Promise.all(allOutputFiles.map(function (file) {
-        var code = uglify.minify(file, {
-          mangle: true,
-          compress: true
-        }).code;
+      await Promise.all(
+        allOutputFiles.map(function(file) {
+          const data = fs.readFileSync(file, { encoding: 'utf-8' });
+          var code = uglify.minify(data, {
+            mangle: true,
+            compress: true
+          }).code;
 
-        return fs.writeFileAsync(file, code, 'utf-8');
-      }));
+          return fs.writeFileAsync(file, code, 'utf-8');
+        })
+      );
     }
   }
 
@@ -286,10 +337,26 @@ module.exports = async function build(debug) {
       ncp('./src/vendor', './www/vendor'),
       cp('./src/assets/evolutions.txt', './www/assets/evolutions.txt'),
       cp('./src/assets/types.txt', './www/assets/types.txt'),
-      splitFile('./src/assets/monster-moves.txt', './www/assets/monster-moves.txt', 100),
-      splitFile('./src/assets/descriptions.txt', './www/assets/descriptions.txt', 100),
-      splitFile('./src/assets/monsters-supplemental.txt', './www/assets/monsters-supplemental.txt', 100),
-      splitFile('./src/assets/skim-monsters.txt', './www/assets/skim-monsters.txt', 100),
+      splitFile(
+        './src/assets/monster-moves.txt',
+        './www/assets/monster-moves.txt',
+        100
+      ),
+      splitFile(
+        './src/assets/descriptions.txt',
+        './www/assets/descriptions.txt',
+        100
+      ),
+      splitFile(
+        './src/assets/monsters-supplemental.txt',
+        './www/assets/monsters-supplemental.txt',
+        100
+      ),
+      splitFile(
+        './src/assets/skim-monsters.txt',
+        './www/assets/skim-monsters.txt',
+        100
+      ),
       splitFile('./src/assets/moves.txt', './www/assets/moves.txt', 100)
     ];
 
@@ -311,15 +378,15 @@ module.exports = async function build(debug) {
     console.log('buildDev()');
     await Promise.all([buildHtml(), buildCss(), buildJS(), buildStatic()]);
     console.log('wrote files to www/');
-    watch('src/index.html', {recursive: true}, async () => {
+    watch('src/index.html', { recursive: true }, async () => {
       await buildHtml();
       console.log('rebuild html');
     });
-    watch('src/js', {recursive: true}, async () => {
+    watch('src/js', { recursive: true }, async () => {
       await Promise.all([buildHtml(), buildJS()]);
       console.log('rebuild html+js');
     });
-    watch('src/css', {recursive: true}, async () => {
+    watch('src/css', { recursive: true }, async () => {
       await Promise.all([buildHtml(), buildCss()]);
       console.log('rebuild html+css');
     });
