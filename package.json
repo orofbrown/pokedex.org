@@ -79,6 +79,7 @@
     "zpad": "^0.5.0"
   },
   "dependencies": {
-    "marky": "^1.0.0"
+    "marky": "^1.0.0",
+    "sqlite3": "^4.0.9"
   }
 }
